@@ -8,13 +8,9 @@ class CorruptMatterPacketException(Exception):
     pass
 
 
-class MatterReader:
-    def __init__(self, device_file, speed):
-        self.device = serial.Serial(device_file, speed)
-        try:
-            self.device.open()
-        except serial.serialutil.SerialException:
-            pass
+class Parser:
+    def __init__(self):
+        pass
 
     def _check_packet(self, packet):
         if packet[0] != 0xaa:
@@ -26,15 +22,30 @@ class MatterReader:
         if sum(packet[2:8]) % 0x100 != packet[8]:
             raise CorruptMatterPacketException()
 
-    def read(self):
-        packet = self.device.read(10)
+    def parse_pms(self, packet):
         self._check_packet(packet)
         def calculate_value(offset):
-            return ((packet[offset+1] << 2) + packet[offset]) / 10
+            return ((packet[offset+1] * 256) + packet[offset]) / 10
         pm_2_5 = calculate_value(2)
         pm_10 = calculate_value(4)
 
         return (pm_2_5,pm_10)
+
+
+
+class MatterReader:
+    def __init__(self, device_file, speed):
+        self.device = serial.Serial(device_file, speed)
+        try:
+            self.device.open()
+        except serial.serialutil.SerialException:
+            pass
+
+
+
+    def read(self):
+        packet = self.device.read(10)
+
 
     def query_reporting_mode(self):
         tx_packet = [
