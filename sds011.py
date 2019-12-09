@@ -4,7 +4,7 @@ import serial
 import sys
 
 
-class CorruptMatterPacketException(Exception):
+class CorruptPacketException(Exception):
     pass
 
 
@@ -14,13 +14,13 @@ class Parser:
 
     def _check_packet(self, packet):
         if packet[0] != 0xaa:
-            raise CorruptMatterPacketException()
+            raise CorruptPacketException()
         if packet[1] != 0xc0:
-            raise CorruptMatterPacketException()
+            raise CorruptPacketException()
         if packet[9] != 0xab:
-            raise CorruptMatterPacketException()
+            raise CorruptPacketException()
         if sum(packet[2:8]) % 0x100 != packet[8]:
-            raise CorruptMatterPacketException()
+            raise CorruptPacketException()
 
     def parse_pms(self, packet):
         self._check_packet(packet)

@@ -55,6 +55,26 @@ READING_PACKET_INPUT_OUTPUTS = [
         [0xaa, 0xc0, 0x12, 0x34, 0x56, 0x78, 0xbe, 0xef, 0xc0, 0xab],
         sds011.CorruptPacketException
     ),
+    # Bad Header, Good Checksum
+    (   # 0     1     2     3     4     5     6     7     8     9
+        [0xab, 0xc0, 0xd4, 0x04, 0x3a, 0x0a, 0xa1, 0x60, 0x1e, 0xab],
+        sds011.CorruptPacketException
+    ),
+    # Bad Command, Good Checksum
+    (   # 0     1     2     3     4     5     6     7     8     9
+        [0xaa, 0xc1, 0xd4, 0x04, 0x3a, 0x0a, 0xa1, 0x60, 0x1e, 0xab],
+        sds011.CorruptPacketException
+    ),
+    # Bad Tail, Good Checksum
+    (   # 0     1     2     3     4     5     6     7     8     9
+        [0xaa, 0xc0, 0xd4, 0x04, 0x3a, 0x0a, 0xa1, 0x60, 0x1e, 0xac],
+        sds011.CorruptPacketException
+    ),
+    # Trash
+    (   # 0     1     2     3     4     5     6     7     8     9
+        [0xbe, 0xef, 0xde, 0xad, 0xfa, 0xce, 0xc0, 0xc0, 0x13, 0x37],
+        sds011.CorruptPacketException
+    ),
 ]
 
 @pytest.fixture(params=READING_PACKET_INPUT_OUTPUTS)
@@ -68,7 +88,7 @@ def test_parse_reading_packet(reading_packet_input_output):
         parsed_pms = parser.parse_pms(packet)
         assert exp == parsed_pms
 
-    if issubclass(exp, Exception):
+    if exp == sds011.CorruptPacketException:
         with pytest.raises(exp):
             run_test()
     else:
