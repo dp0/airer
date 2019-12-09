@@ -8,6 +8,37 @@ class CorruptPacketException(Exception):
     pass
 
 
+class Crafter:
+    def __init__(self):
+        pass
+
+    def reporting_mode(self, set_mode=None, device_id=0xffff):
+        device_id_byte_1 = device_id >> 8
+        device_id_byte_2 = device_id & 0x00ff
+        if set_mode == 'query':
+            get_set_byte = 0x01
+            active_query_byte = 0x01
+        elif set_mode == 'active':
+            get_set_byte = 0x01
+            active_query_byte = 0x00
+        elif set_mode is None:
+            get_set_byte = 0x00
+            active_query_byte = 0x00
+        else:
+            raise ValueError(f'set_mode was "{set_mode}", which is not a supported mode')
+
+        data_bytes = [
+            0x02, get_set_byte, active_query_byte,
+            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+            device_id_byte_1, device_id_byte_2
+        ]
+
+        return [0xaa, 0xb4] + data_bytes + [self._compute_checksum(data_bytes), 0xab]
+
+    def _compute_checksum(self, data_bytes):
+        return sum(data_bytes) % 0x100
+
+
 class Parser:
     def __init__(self):
         pass
