@@ -12,9 +12,11 @@ class Crafter:
     def __init__(self):
         pass
 
+    def _addr_to_addr_bytes(self, addr):
+        return addr >> 8, addr & 0x00ff
+
     def reporting_mode(self, set_mode=None, device_id=0xffff):
-        device_id_byte_1 = device_id >> 8
-        device_id_byte_2 = device_id & 0x00ff
+        device_id_byte_1, device_id_byte_2 = self._addr_to_addr_bytes(device_id)
         if set_mode == 'query':
             get_set_byte = 0x01
             active_query_byte = 0x01
@@ -34,6 +36,18 @@ class Crafter:
         ]
 
         return [0xaa, 0xb4] + data_bytes + [self._compute_checksum(data_bytes), 0xab]
+
+    def query_pms(self, device_id=0xffff):
+        device_id_byte_1, device_id_byte_2 = self._addr_to_addr_bytes(device_id)
+
+        data_bytes = [
+            0x04, 0x00, 0x00,
+            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+            device_id_byte_1, device_id_byte_2
+        ]
+
+        return [0xaa, 0xb4] + data_bytes + [self._compute_checksum(data_bytes), 0xab]
+
 
     def _compute_checksum(self, data_bytes):
         return sum(data_bytes) % 0x100
