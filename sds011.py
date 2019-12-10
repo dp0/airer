@@ -53,18 +53,22 @@ class Parser:
         if sum(packet[2:8]) % 0x100 != packet[8]:
             raise CorruptPacketException()
 
+    def _addr_bytes_to_addr(self, addr_1, addr_2):
+        return (addr_1 << 8) + addr_2
+
     def parse_pms(self, packet):
+        address = self._addr_bytes_to_addr(packet[6], packet[7])
         self._check_packet(packet, 0xaa, 0xc0, 0xab)
         def calculate_value(offset):
             return ((packet[offset+1] * 256) + packet[offset]) / 10
         pm_2_5 = calculate_value(2)
         pm_10 = calculate_value(4)
 
-        return (pm_2_5,pm_10)
+        return (pm_2_5, pm_10, address)
 
     def parse_report_mode(self, packet):
         self._check_packet(packet, 0xaa, 0xc5, 0xab)
-        address = (packet[6] << 8) + packet[7]
+        address = self._addr_bytes_to_addr(packet[6], packet[7])
         report_mode_byte = packet[4]
         if report_mode_byte == 0x00:
             mode = 'active'

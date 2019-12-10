@@ -8,47 +8,47 @@ READING_PACKET_INPUT_OUTPUTS = [
     # Example given as per datasheet docs
     (   # 0     1     2     3     4     5     6     7     8     9
         [0xaa, 0xc0, 0xd4, 0x04, 0x3a, 0x0a, 0xa1, 0x60, 0x1d, 0xab],
-        (123.6, 261.8)
+        (123.6, 261.8, 0xa160)
     ),
     # Zero PM2.5, Zero PM10
     (   # 0     1     2     3     4     5     6     7     8     9
         [0xaa, 0xc0, 0x00, 0x00, 0x00, 0x00, 0xa1, 0x60, 0x01, 0xab],
-        (0.0, 0.0)
+        (0.0, 0.0, 0xa160)
     ),
     # Zero PM2.5, Small PM10
     (   # 0     1     2     3     4     5     6     7     8     9
         [0xaa, 0xc0, 0x00, 0x00, 0x01, 0x00, 0xa1, 0x60, 0x02, 0xab],
-        (0.0, 0.1)
+        (0.0, 0.1, 0xa160)
     ),
     # Small PM2.5, Zero PM10
     (   # 0     1     2     3     4     5     6     7     8     9
         [0xaa, 0xc0, 0x02, 0x00, 0x00, 0x00, 0xa1, 0x60, 0x03, 0xab],
-        (0.2, 0.0)
+        (0.2, 0.0, 0xa160)
     ),
     # Small PM2.5, Small PM10
     (   # 0     1     2     3     4     5     6     7     8     9
         [0xaa, 0xc0, 0x03, 0x00, 0x04, 0x00, 0xa1, 0x60, 0x08, 0xab],
-        (0.3, 0.4)
+        (0.3, 0.4, 0xa160)
     ),
     # Theoretical Max PM2.5, Small PM10
     (   # 0     1     2     3     4     5     6     7     8     9
         [0xaa, 0xc0, 0xff, 0xff, 0x0a, 0x00, 0xa1, 0x60, 0x09, 0xab],
-        (6553.5, 1.0)
+        (6553.5, 1.0, 0xa160)
     ),
     # Small PM2.5, Theoretical Max PM10
     (   # 0     1     2     3     4     5     6     7     8     9
         [0xaa, 0xc0, 0x0a, 0x00, 0xff, 0xff, 0xa1, 0x60, 0x09, 0xab],
-        (1.0, 6553.5)
+        (1.0, 6553.5, 0xa160)
     ),
     # Large PM2.5, Large PM10
     (   # 0     1     2     3     4     5     6     7     8     9
         [0xaa, 0xc0, 0x12, 0x34, 0x56, 0x78, 0xa1, 0x60, 0x15, 0xab],
-        (1333.0, 3080.6)
+        (1333.0, 3080.6, 0xa160)
     ),
     # Large PM2.5, Large PM10 - Differing ID
     (   # 0     1     2     3     4     5     6     7     8     9
         [0xaa, 0xc0, 0x12, 0x34, 0x56, 0x78, 0xbe, 0xef, 0xc1, 0xab],
-        (1333.0, 3080.6)
+        (1333.0, 3080.6, 0xbeef)
     ),
     # Invalid Checksum
     (   # 0     1     2     3     4     5     6     7     8     9
