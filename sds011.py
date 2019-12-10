@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import argparse
 import serial
 import sys
 
@@ -93,44 +94,100 @@ class Parser:
         return (mode, address)
 
 
-class MatterReader:
-    def __init__(self, device_file, speed):
+class SDS011:
+    def __init__(self, device_file, speed, parser=Parser, crafter=Crafter):
         self.device = serial.Serial(device_file, speed)
+        self.parser = parser()
+        self.crafter = crafter()
         try:
             self.device.open()
         except serial.serialutil.SerialException:
             pass
 
-
-
-    def read(self):
+    def active_read_pms(self):
         packet = self.device.read(10)
+        return self.parser.parse_pms(packet)
 
-
-    def query_reporting_mode(self):
-        tx_packet = [
-            0xaa, # Head
-            0xb4, # Command ID
-            0x02, # Data byte 1
-            0x00, # Data byte 2 -> 0: query
-            0x00, 0x00, 0x00, 0x00, # Data bytes 3-6
-            0x00, 0x00, 0x00, 0x00, # Data bytes 7-10
-            0x00, 0x00, 0x00, # Data bytes 11-13
-            0xff, 0xff, # Data bytes 14-15: 0xff: broadcast
-            0x00, 0xab
-        ]
-
+    def get_reporting_mode(self):
+        tx_packet = self.crafter.reporting_mode()
         self.device.write(tx_packet)
-
         rx_packet = self.device.read(10)
+        return self.parser.parse_report_mode(rx_packet)
 
-        [print(hex(b)) for b in rx_packet]
+    def set_reporting_mode(self, reporting_mode):
+        tx_packet = self.crafter.reporting_mode(set_mode=reporting_mode)
+        self.device.write(tx_packet)
+        rx_packet = self.device.read(10)
+        return self.parser.parse_report_mode(rx_packet)
 
+    def query_read_pms(self):
+        tx_packet = self.crafter.query_pms()
+        self.device.write(tx_packet)
+        packet = self.device.read(10)
+        return self.parser.parse_pms(packet)
 
 def main():
-    reader = MatterReader('/dev/ttyUSB0', 9600)
-    reader.query_reporting_mode()
-    print(reader.read())
+
+    parser = argparse.ArgumentParser(description='sds011 management CLI')
+
+    parser.add_argument('-d', '--device',
+        help='Path to the sds011 serial device.',
+        default='/dev/ttyUSB0',
+        type=str
+    )
+    parser.add_argument('-s', '--speed',
+        help='The baud rate for communication with the sds011 serial device.',
+        default=9600,
+        type=int
+    )
+
+    subparsers = parser.add_subparsers(dest='command')
+    subparsers.required = True
+
+    def read(args, sds011):
+        if args.query:
+            pm_2_5, pm_10, addr = sds011.query_read_pms()
+        else:
+            pm_2_5, pm_10, addr = sds011.active_read_pms()
+
+        print(f'Device ID: {addr}\nPM2.5 (µg/m³): {pm_2_5}\nPM10 (µg/m³): {pm_10}')
+
+    parser_read = subparsers.add_parser('read',
+        description='Take a reading from the sds011 to give values for the'
+        ' PM2.5 and PM10 levels.'
+    )
+    parser_read.add_argument('--query', action='store_true',
+        help='Query the sds011 for readings, rather than passively receiving'
+        ' them. This is required if the sds011 is in the `query` reporting'
+        ' mode.')
+    parser_read.set_defaults(func=read)
+
+    def mode(args, sds011):
+        if args.new_mode:
+            cur_mode, addr = sds011.set_reporting_mode(args.new_mode)
+        else:
+            cur_mode, addr = sds011.get_reporting_mode()
+
+        print(f'Device ID: {addr}\nReporting Mode: {cur_mode}')
+
+    parser_mode = subparsers.add_parser('mode',
+        description='Retrieve (and set) the reporting mode of the sds011'
+        ' serial device. If `new_mode` is specified, this will be persisted as'
+        ' the reporting mode on the sds011, else the current reporting mode'
+        ' will only be displayed.'
+    )
+    parser_mode.add_argument('new_mode', nargs='?', type=str,
+        help='The new reporting mode to persist. For the `active`'
+        ' reporting mode (the factory default), the sds011 will periodically'
+        ' take readings and send these over the serial link. For the `query`'
+        ' reporting mode, the sds011 needs to be queried to take a reading.'
+    )
+    parser_mode.set_defaults(func=mode)
+
+    args = parser.parse_args()
+    sds011 = SDS011(args.device, args.speed)
+    args.func(args, sds011)
+
 
 if __name__ == '__main__':
     sys.exit(main())
