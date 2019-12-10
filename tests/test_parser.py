@@ -93,3 +93,49 @@ def test_parse_reading_packet(reading_packet_input_output):
             run_test()
     else:
         run_test()
+
+def test_parse_set_report_query_mode():
+    parser = sds011.Parser()
+
+    # Packet as per datasheet docs
+    packet = [0xaa, 0xc5, 0x02, 0x01, 0x01, 0x00, 0xa1, 0x60, 0x05, 0xab]
+
+    mode, address = parser.parse_report_mode(packet)
+    assert 'query' == mode
+    assert 0xa160 == address
+
+def test_parse_get_report_active_mode():
+    parser = sds011.Parser()
+
+    # Packet as per datasheet docs
+    packet = [0xaa, 0xc5, 0x02, 0x00, 0x00, 0x00, 0xa1, 0x60, 0x03, 0xab]
+
+    mode, address = parser.parse_report_mode(packet)
+    assert 'active' == mode
+    assert 0xa160 == address
+
+def test_parse_get_report_active_mode():
+    parser = sds011.Parser()
+
+    # Packet as per datasheet docs
+    packet = [0xaa, 0xc5, 0x02, 0x00, 0x01, 0x00, 0xa1, 0x60, 0x04, 0xab]
+
+    mode, address = parser.parse_report_mode(packet)
+    assert 'query' == mode
+    assert 0xa160 == address
+
+def test_parse_get_report_mode_bad_checksum():
+    parser = sds011.Parser()
+
+    packet = [0xaa, 0xc5, 0x02, 0x00, 0x01, 0x00, 0xa1, 0x60, 0x05, 0xab]
+
+    with pytest.raises(sds011.CorruptPacketException):
+        mode, address = parser.parse_report_mode(packet)
+
+def test_parse_get_report_mode_bad_mode():
+    parser = sds011.Parser()
+
+    packet = [0xaa, 0xc5, 0x02, 0x00, 0x02, 0x00, 0xa1, 0x60, 0x05, 0xab]
+
+    with pytest.raises(sds011.CorruptPacketException):
+        mode, address = parser.parse_report_mode(packet)

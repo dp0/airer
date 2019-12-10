@@ -43,18 +43,18 @@ class Parser:
     def __init__(self):
         pass
 
-    def _check_packet(self, packet):
-        if packet[0] != 0xaa:
+    def _check_packet(self, packet, head, command, tail):
+        if packet[0] != head:
             raise CorruptPacketException()
-        if packet[1] != 0xc0:
+        if packet[1] != command:
             raise CorruptPacketException()
-        if packet[9] != 0xab:
+        if packet[9] != tail:
             raise CorruptPacketException()
         if sum(packet[2:8]) % 0x100 != packet[8]:
             raise CorruptPacketException()
 
     def parse_pms(self, packet):
-        self._check_packet(packet)
+        self._check_packet(packet, 0xaa, 0xc0, 0xab)
         def calculate_value(offset):
             return ((packet[offset+1] * 256) + packet[offset]) / 10
         pm_2_5 = calculate_value(2)
@@ -62,6 +62,17 @@ class Parser:
 
         return (pm_2_5,pm_10)
 
+    def parse_report_mode(self, packet):
+        self._check_packet(packet, 0xaa, 0xc5, 0xab)
+        address = (packet[6] << 8) + packet[7]
+        report_mode_byte = packet[4]
+        if report_mode_byte == 0x00:
+            mode = 'active'
+        elif report_mode_byte == 0x01:
+            mode = 'query'
+        else:
+            raise CorruptPacketException()
+        return (mode, address)
 
 
 class MatterReader:
