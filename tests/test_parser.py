@@ -2,7 +2,7 @@
 
 import pytest
 
-import sds011
+from airer import sds011
 
 READING_PACKET_INPUT_OUTPUTS = [
     # Example given as per datasheet docs

@@ -2,7 +2,7 @@
 
 import pytest
 
-import sds011
+from airer import sds011
 
 
 def test_craft_set_report_query_mode():
