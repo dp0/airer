@@ -21,7 +21,7 @@ a command-line interface is also provided to manually manage your sensor.
 
 Once installed, the CLI can rapidly be used:
 
-```bash
+```
 $ python -m airer.sds011
 usage: sds011.py [-h] [-d DEVICE] [-s SPEED] {read,mode} ...
 ```
@@ -34,7 +34,7 @@ mode.
 
 To check what mode your SDS011 is currently set to using the CLI:
 
-```bash
+```
 $ python -m airer.sds011 mode
 Device ID: 61697
 Reporting Mode: active
@@ -43,7 +43,7 @@ Reporting Mode: active
 To put the SDS011 into `query` mode, and persist this change between power
 cycles:
 
-```bash
+```
 $ python -m airer.sds011 mode query
 Device ID: 61697
 Reporting Mode: query
@@ -51,7 +51,7 @@ Reporting Mode: query
 
 To take a reading of the sensor with the CLI while in `query` mode:
 
-```bash
+```
 $ python -m airer.sds011 read --query
 Device ID: 61697
 PM2.5 (µg/m³): 1.5
